@@ -1,0 +1,42 @@
+{
+    "manifest_version": 2,
+    "name": "Secure Fox",
+    "version": "1.0",
+  
+    "description": "Scan your browser for third party connections and potential hijacking or hook threats, detect local storage and cookies from every website, and be more secure in your firefox!",
+  
+    "icons": {
+      "48": "icons/secure_fox_icon_48x48.png",
+      "96": "icons/secure_fox_icon_96x96.png"
+    },
+  
+    "applications": {
+        "gecko": {
+        "id": "secure_fox@mozilla.org"
+        }
+    },
+
+    "permissions": [
+        "http://*/*", 
+        "https://*/*",
+        "webRequest",
+        "webRequestBlocking",
+        "<all_urls>"
+    ],
+
+    "browser_action": {
+        "default_icon": "button/button.png",
+        "default_title": "Secure Fox",
+        "default_popup": "popup/popup.html"
+    },
+
+    "web_accessible_resources": [
+        
+    ],
+
+    "background": {
+        "scripts": ["content_scripts/secure_fox.js"],
+        "persistent": false
+    }
+  }
+  
