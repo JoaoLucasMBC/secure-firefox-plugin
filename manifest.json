@@ -44,7 +44,8 @@
         "scripts": [
             "background/secure_fox.js",
             "background/hijacking.js",
-            "background/background_cookies_storage.js"
+            "background/background_cookies_storage.js",
+            "background/background_canvas_fingerprinting.js"
         ],
         "persistent": false
     },
@@ -52,7 +53,10 @@
     "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content_scripts/check_cookies_storage.js"]
+      "js": [
+        "content_scripts/check_cookies_storage.js",
+        "content_scripts/detect_canvas_fingerprinting.js"
+        ]
     }
   ]
   }

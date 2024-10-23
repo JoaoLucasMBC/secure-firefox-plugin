@@ -2,19 +2,60 @@
 <html>
 <head>
   <title>Secure Fox - Your Web Safer</title>
+  <link rel="stylesheet" href="popup.css">
 </head>
 <body>
-  <h1>Website Data</h1>
+  <h1>Secure Fox</h1>
+  
+  <div id="siteInfo">
+    <h2>Website: <span id="siteName">[Site Name]</span></h2>
+    <p id="privacyScore">Privacy Score: 10/10</p>
+  </div>
+
+  <div id="content">
+    <div id="thirdPartyDomains">
+      <h2>
+        Third-Party Domains (<span id="thirdPartyDomainsCount">0</span>) 
+        <span class="toggle" data-target="thirdPartyDomainsList">></span>
+      </h2>
+      <div id="thirdPartyDomainsList" class="collapsible-content"></div>
+    </div>
+    
     <div id="localStorage">
-        <h2>Local Storage</h2>
+      <h2>
+        Local Storage (<span id="localStorageCount">0</span>) 
+        <span class="toggle" data-target="localStorageList">></span>
+      </h2>
+      <div id="localStorageList" class="collapsible-content"></div>
     </div>
+
     <div id="cookies">
-        <h2>Cookies</h2>
+      <h2>
+        Cookies (<span id="cookiesCount">0</span>)
+        <span class="toggle" data-target="cookiesList">></span>
+      </h2>
+      <div id="cookiesList" class="collapsible-content"></div>
+    </div>  
+
+    <div id="hijackWarnings">
+      <h2>
+        Hijack Vulnerabilities Warnings (<span id="hijackWarningsCount">0</span>)
+        <span class="toggle" data-target="hijackWarningsList">></span>
+      </h2>
+      <div id="hijackWarningsList" class="collapsible-content"></div>
     </div>
 
-  <p>teste</p>
+    <div id="fingerprintingWarnings">
+      <h2>
+        Canvas Fingerprinting Events (<span id="fingerprintingCount">0</span>)
+        <span class="toggle" data-target="fingerprintingList">></span>
+      </h2>
+      <div id="fingerprintingList" class="collapsible-content"></div>
+    </div>
+    
+  </div>
 
-  <div id="domainsList"></div>
+  
   <script src="popup.js"></script>
 </body>
 </html>
