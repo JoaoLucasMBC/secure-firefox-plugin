@@ -9,9 +9,8 @@ function checkLocalStorage() {
     return storageEntries;
 }
 
+// Pede para o background script pegar os cookies
 function getCookies() {
-    console.log("oi");
-    console.log(window.location.href);
     browser.runtime.sendMessage({ action: "getCookies", url: window.location.href });
 }
 
