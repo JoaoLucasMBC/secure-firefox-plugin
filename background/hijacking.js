@@ -1,4 +1,6 @@
-// GLOBAL FUNCTION FOR NOTIFICATIONS
+//// Detecção de Hijacking
+
+// Função de notificação
 function notifyUser(message) {
     browser.notifications.create({
         "type": "basic",
@@ -7,25 +9,46 @@ function notifyUser(message) {
     });
 }
 
+let hijackWarnings = {}; // "Base de dados"
+
+// Adiciona um aviso para o domínio atual
+function addWarningForDomain(message) {
+    browser.tabs.query({ active: true, currentWindow: true }).then(tabs => {
+        const currentTab = tabs[0];
+        const currentDomain = new URL(currentTab.url).hostname;
+
+        if (!hijackWarnings[currentDomain]) {
+            hijackWarnings[currentDomain] = [];
+        }
+        
+        hijackWarnings[currentDomain].push(message);
+    });
+}
 
 
-// CHECK FOR CONFIGURATION CHANGES
+
+
+// 1) Verifica se a página inicial ou o mecanismo de busca padrão foram alterados
 function checkSettings() {
     if (browser.browserSettings && browser.browserSettings.homepageOverride) {
         browser.browserSettings.homepageOverride.get({}).then(result => {
             if (result.value !== "about:home") {
-                notifyUser("Warning: Your homepage has been changed!");
+                const message = "Warning: Your homepage has been changed!";
+                notifyUser(message);
+                addWarningForDomain(message);
             }
         });
     } else {
         console.error("browserSettings API is not supported in this browser.");
     }
 
-    // Check search engine if available
+    // Search engine pode não ser disponível no navegador
     if (browser.browserSettings && browser.browserSettings.defaultSearchEngine) {
         browser.browserSettings.defaultSearchEngine.get({}).then(result => {
             if (result.value !== "https://google.com") {
-                notifyUser("Warning: Your search engine has been changed!");
+                const message = "Warning: Your search engine has been changed!";
+                notifyUser(message);
+                addWarningForDomain(message);
             }
         });
     } else {
@@ -33,60 +56,71 @@ function checkSettings() {
     }
 }
 
-// Check settings every 10 seconds (adjust interval as needed)
-setInterval(checkSettings, 100000);
+// Checa as configurações em loop
+setInterval(checkSettings, 10000);
 
 
 
-// CHECK STRANGE PLUGINS
+// 2) Verifica se as extensões estão desativadas (podem ser suspeitas)
 function checkExtensions() {
     browser.management.getAll().then((extensions) => {
         extensions.forEach((extension) => {
             if (!extension.enabled) {
-                notifyUser(`Disabled extension detected: ${extension.name}`);
+                const message = `Disabled extension detected: ${extension.name}`;
+                addWarningForDomain(message);
             }
         });
     });
 }
 
-// Check installed extensions every 10 seconds
+// Checa as extensões em loop
 setInterval(checkExtensions, 100000);
 
 
 
-// CHECK FOR STRANGE JS EVENTS
+// 3) Verifica se algum código malicioso é executado
 (function() {
     const originalEval = window.eval;
     window.eval = function() {
-        notifyUser("Warning: eval() was called. Possible malicious script execution.");
+        const message = "Warning: eval() was called. Possible malicious script execution.";
+        notifyUser(message);
+        addWarningForDomain(message);
         return originalEval.apply(this, arguments);
     };
 
     const originalFunction = window.Function;
     window.Function = function() {
-        notifyUser("Warning: new Function() was called. Possible malicious code execution.");
+        const message = "Warning: new Function() was called. Possible malicious code execution.";
+        notifyUser(message);
+        addWarningForDomain(message);
         return originalFunction.apply(this, arguments);
     };
 })();
+// Essa função se auto executa para monitorar o eval e o Function
 
 
-
-// CHECK FOR MODIFICATION OF DOM OR INJECTION OF NEW JS FILES FOR A SITE
+// 4) Verifica se eventos de teclado e submissão de formulários são adicionados (pode ser Hijacking)
 (function() {
     const originalAddEventListener = EventTarget.prototype.addEventListener;
 
     EventTarget.prototype.addEventListener = function(type, listener, options) {
         if (type === 'keydown' || type === 'submit') {
-            notifyUser(`Warning: An event listener for ${type} was added. Possible malicious behavior.`);
+            const message = `Warning: An event listener for ${type} was added. Possible malicious behavior.`;
+            notifyUser(message);
+            addWarningForDomain(message);
         }
         return originalAddEventListener.apply(this, arguments);
     };
 })();
+// Essa função se auto executa para monitorar os eventos
 
+// 5) Verifica se novos elementos são adicionados ao DOM (possível injeção de código)
 const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
         if (mutation.addedNodes.length > 0) {
-            notifyUser("Warning: A new node has been added to the DOM. Possible malicious injection.");
+            const message = "Warning: A new node has been added to the DOM. Possible malicious injection.";
+            notifyUser(message);
+            addWarningForDomain(message);
         }
     });
 });
@@ -96,11 +130,14 @@ observer.observe(document.body, {
     subtree: true
 });
 
+// 6) Verifica se novos scripts são injetados na página (possível injeção de código)
 const scriptObserver = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
         mutation.addedNodes.forEach((node) => {
             if (node.tagName === 'SCRIPT') {
-                notifyUser("Warning: A new script tag was injected into the page. Possible malicious code.");
+                const message = "Warning: A new script tag was injected into the page. Possible malicious code.";
+                notifyUser(message);
+                addWarningForDomain(message);
             }
         });
     });
@@ -112,19 +149,11 @@ scriptObserver.observe(document.documentElement, {
 });
 
 
-
-// CHECK COOKIES
-browser.cookies.onChanged.addListener((changeInfo) => {
-    notifyUser(`Cookie change detected for domain: ${changeInfo.cookie.domain}.`);
-    // Additional logic to detect suspicious cookie changes
-});
-
-
-
-// CHECK REDIRECTS
+// 7) Verifica se há redirecionamentos suspeitos
 function trackRedirects(details) {
     if (details.redirectUrl && details.url !== details.redirectUrl) {
-        notifyUser(`Redirect detected from ${details.url} to ${details.redirectUrl}`);
+        const message = `Redirect detected from ${details.url} to ${details.redirectUrl}`;
+        addWarningForDomain(message);
     }
 }
 
@@ -135,19 +164,42 @@ browser.webRequest.onBeforeRedirect.addListener(
 
 
 
-// EXTRA: suspicious domains? Not https??
+// 8) Verifica se há solicitações não seguras (HTTP) e notifica apenas o usuário
 function trackHttpRequests(details) {
     const requestUrl = new URL(details.url);
 
     // Check if the request is not using HTTPS
     if (requestUrl.protocol === "http:") {
-        console.log(`Non-secure (HTTP) request detected: ${details.url}`); // Debugging log
         notifyUser(`Non-secure (HTTP) request detected: ${details.url}`);
     }
 }
 
-// Listen for all web requests
 browser.webRequest.onBeforeRequest.addListener(
     trackHttpRequests,
     { urls: ["<all_urls>"] }
 );
+
+
+// Listener para devolver os avisos de hijacking para o popup de um site específico
+browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === "getHijackWarnings") {
+        browser.tabs.query({ active: true, currentWindow: true }).then(tabs => {
+            const currentTab = tabs[0];
+            const currentDomain = new URL(currentTab.url).hostname;
+
+            sendResponse({
+                hijackWarnings: hijackWarnings[currentDomain] || [] 
+            });
+        });
+
+        return true;
+    }
+});
+
+// Para limpar os avisos quando a página é recarregada
+browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+    if (changeInfo.status === 'complete') {
+        const currentDomain = new URL(tab.url).hostname;
+        hijackWarnings[currentDomain] = [];
+    }
+});
