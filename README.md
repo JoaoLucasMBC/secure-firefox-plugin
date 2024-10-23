@@ -31,7 +31,7 @@ Além disso, estima supercookies e apresenta ao usuário a quantidade de cada um
 ### 5. Detecção de Canvas Fingerprinting
 O Secure Fox detecta tentativas de fingerprinting por meio da manipulação de canvas, usado por sites para identificar usuários, muitas vezes sem consentimento.
 
-### 6. Pontuação de Privacidade (2 pontos)
+### 6. Pontuação de Privacidade
 O plugin calcula uma pontuação de privacidade para cada página que você abre o popup. A pontuação começa em **10 pontos** sempre e é reduzida com base nos seguintes fatores:
 
 - **-1 ponto** a cada 15 domínios de terceiros detectados
@@ -57,3 +57,7 @@ A pontuação é exibida abaixo do nome do site no popup!
 - O popup exibe todas as informações, e você abrir cada sessão para ver mais detalhes.  
 - As informações de local storage e cookies apresentam as chaves. Para visualizar os valores de cada uma, basta clicar na chave!
 - A pontuação de privacidade é calculada automaticamente com base nos fatores mencionados acima e é exibida no topo do popup.
+
+## Créditos
+
+O logo da extensão foi gerado com o ChatGPT! :)
